@@ -35,6 +35,7 @@ public class Tabla extends Frame{
 	private Label naPotezu;
 	
 	private Igrac currentPlayer = P2;
+	private Igrac pobednik = null;
 	
 	private boolean izbor = false;
 	private boolean pomeraj = false;
@@ -110,6 +111,11 @@ public class Tabla extends Frame{
 							index++;
 							
 							move(currentPlayer, figura, potez[0].getRow(), potez[0].getCol(), potez[1].getRow(), potez[1].getCol());
+							if(gameOver) {
+								log.append(Log.parseRow(potez[0].getRow())).append(Log.parseCol(potez[0].getCol())).append(' ');
+								log.append(Log.parseRow(potez[1].getRow())).append(Log.parseCol(potez[1].getCol()));
+								log.append('\n');
+							}
 							
 						}else if (index == 2) {
 							potez[index] = polje;
@@ -247,6 +253,14 @@ public class Tabla extends Frame{
 		P2 = p2;
 	}
 	
+	public Igrac getPobednik() {
+		return pobednik;
+	}
+
+	public void setPobednik(Igrac pobednik) {
+		this.pobednik = pobednik;
+	}
+
 	public boolean isValidMove(Igrac p, Figura f, int y1, int x1, int y2, int x2) {
 		if (tabla[y2][x2].getZ().getNivo() - tabla[y1][x1].getZ().getNivo() > 1) return false;
 		
@@ -262,7 +276,10 @@ public class Tabla extends Frame{
 		f.setCol(x2);
 		f.setRow(y2);
 		
-		if (tabla[y2][x2].getZ().getNivo() == 3) gameOver = true;
+		if (tabla[y2][x2].getZ().getNivo() == 3) {
+			gameOver = true;
+			pobednik = currentPlayer;
+		}
 		
 		return true;
 	}
@@ -368,7 +385,11 @@ public class Tabla extends Frame{
 			}
 		}
 		
-		if (brojPoteza == 0) gameOver();
+		if (brojPoteza == 0) {
+			gameOver = true;
+			pobednik = (currentPlayer == P1) ? P2 : P1;
+			gameOver();
+		}
 		
 	}
 	
@@ -382,19 +403,21 @@ public class Tabla extends Frame{
 
 		if (brojPoteza > 0) poruka.append(currentPlayer.getIme());
 		else poruka.append((currentPlayer == P1) ? P2.getIme() : P1.getIme());
-		log.append('\n').append(poruka).append('\n');
-		
+		 
+		log.append('\n').append(poruka.toString()).append('\n');
+		 
 		Date datum = new Date();
 		Calendar kalendar = new GregorianCalendar();
 		kalendar.setTime(datum);
 		String datumString = "" + kalendar.get(Calendar.YEAR) + '.' + kalendar.get(Calendar.MONTH) + '.' + kalendar.get(Calendar.DAY_OF_MONTH) +
 				 ". - " + kalendar.get(Calendar.HOUR_OF_DAY) + '_' + kalendar.get(Calendar.MINUTE) + '_' + kalendar.get(Calendar.SECOND);
 		String izlazniString = "..\\Santorini\\" + P1.getIme() + " vs " + P2.getIme() + " - " + datumString + ".txt";
-		
+		 
 		final Dialog greska = new Dialog(this);
 		boolean greskaLog = false;
-		File izlaznaDatoteka = new File(izlazniString);
+		
 		try {
+			File izlaznaDatoteka = new File(izlazniString);
 			FileWriter fw = new FileWriter(izlaznaDatoteka);
 			BufferedWriter bw = new BufferedWriter(fw);
 			
@@ -452,9 +475,11 @@ public class Tabla extends Frame{
 			dialog.dispose();
 		});
 		
-		dialog.add(novaIgra);
-		dialog.add(pogledajTablu);
-		dialog.add(izadji);
+		Panel dugmad = new Panel(new GridLayout(1, 3));
+		dugmad.add(novaIgra);
+		dugmad.add(pogledajTablu);
+		dugmad.add(izadji);
+		dialog.add(dugmad);
 		
 		dialog.addWindowListener(new WindowAdapter() {
 			 public void windowClosing(WindowEvent we) {

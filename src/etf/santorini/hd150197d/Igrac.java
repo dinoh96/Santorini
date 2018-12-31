@@ -7,14 +7,14 @@ import java.util.List;
 
 public class Igrac {
 	
-	private static int prevId = 0;
-	private int ID = prevId++;
+	protected static int prevId = 0;
+	protected int ID = prevId++;
 	
-	private List<Figura> figure;
+	protected List<Figura> figure;
 	
-	private String ime;
+	protected String ime;
 	
-	private Color boja;
+	protected Color boja;
 	
 	public Igrac() {
 		this.figure = new ArrayList<Figura>();

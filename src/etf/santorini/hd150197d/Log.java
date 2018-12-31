@@ -1,6 +1,8 @@
 package etf.santorini.hd150197d;
 
+import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
 import java.awt.TextArea;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -96,6 +98,7 @@ public class Log extends Frame{
 		add(logTextArea);
 		logTextArea.setEditable(false);
 		logTextArea.setCaretPosition(log.length()-1);
+		logTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 15));
 		
 		
 		setBounds((sirinaEkrana-600)/2 + 600, 0, 300, 200);
