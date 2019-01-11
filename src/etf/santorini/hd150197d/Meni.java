@@ -51,7 +51,7 @@ public class Meni extends Frame{
 		play.setSize(50, 20);
 		play.setEnabled(false);
 		
-		setBounds((sirinaEkrana-600)/2, 0, 600, 670);
+		setBounds((sirinaEkrana-600)/2, 0, 600, 703);
 		setResizable(false);
 		
 		setBackground(new Color(186, 191, 198));
@@ -78,9 +78,9 @@ public class Meni extends Frame{
 		tmp.add(new Label("Izaberite igrace:", Label.LEFT));
 		
 		CheckboxGroup mod = new CheckboxGroup();
-		modIgre[0] = new Checkbox("Igrac - Igrac", true, mod);
+		modIgre[0] = new Checkbox("Igrac - Igrac", false, mod);
 		modIgre[1] = new Checkbox("Igrac - Racunar", false, mod);
-		modIgre[2] = new Checkbox("Racunar - Racunar", false, mod);
+		modIgre[2] = new Checkbox("Racunar - Racunar", true, mod);
 		
 		for(Checkbox t: modIgre) tmp.add(t);
 		pnl1.add(tmp);
@@ -194,14 +194,33 @@ public class Meni extends Frame{
 	}
 	
 	private void play() {
-		Igrac P1 = new Igrac();
-		Igrac P2 = new Igrac();
+		Igrac P1;
+		Igrac P2;
+		String mod = "PvP";
+		if(modIgre[0].getState()) {
+			P1 = new Igrac();
+			P2 = new Igrac();
+		}else if(modIgre[1].getState()) {
+			P1 = new Igrac();
+			P2 = new RacunarEasy();
+			mod = "PvC";
+			((RacunarEasy)P2).setOtherPlayer(P1);
+		}else if(modIgre[2].getState()) {
+			P1 = new RacunarEasy();
+			P2 = new RacunarEasy();
+			((RacunarEasy)P1).setOtherPlayer(P2);
+			((RacunarEasy)P2).setOtherPlayer(P1);
+			mod = "CvC";
+		}else {
+			dispose();
+			return;
+		}
 		P1.setIme(imeP1.getText());
 		P2.setIme(imeP2.getText());
 		P1.setBoja(colorP1);
 		P2.setBoja(colorP2);
 		
-		new Log(pocetnoStanje, P1, P2, sirinaEkrana);
+		new Log(pocetnoStanje, P1, P2, sirinaEkrana, mod);
 				
 		dispose();
 	}

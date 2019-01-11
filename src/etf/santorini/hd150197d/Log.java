@@ -61,6 +61,7 @@ public class Log extends Frame{
 	private int sirinaEkrana;
 	
 	private String poruka;
+	private String mod;
 	private int errorCode;
 
 	public static int parseCol(int x){
@@ -75,13 +76,14 @@ public class Log extends Frame{
 		return (char)('A' + x);
 	}
 	
-	public Log(File pocetnoStanje, Igrac P1, Igrac P2, int sirinaEkrana) {
+	public Log(File pocetnoStanje, Igrac P1, Igrac P2, int sirinaEkrana, String mod) {
 		super();
 		this.pocetnoStanje = pocetnoStanje;
 		this.P1 = P1;
 		this.P2 = P2;
 		this.sirinaEkrana = sirinaEkrana;
-		trenutni = P1;
+		this.mod = mod;
+		this.trenutni = P1;
 		stepByStep = false;
 		for(int i = 0; i < HEIGHT; i++)
 			for(int j = 0; j < WIDTH; j++)
@@ -104,8 +106,9 @@ public class Log extends Frame{
 		setBounds((sirinaEkrana-600)/2 + 600, 0, 300, 200);
 		setResizable(false);
 		
-		Tabla tabla = new Tabla(P1, P2, pocetnoStanje, gameOver, errorCode, poruka, this.tabla, this, trenutni);
-		tabla.setBounds((sirinaEkrana-600)/2, 0, 600, 670);
+		Tabla tabla = new Tabla(P1, P2, pocetnoStanje, gameOver, errorCode, poruka, this.tabla, this, trenutni, mod);
+		
+		tabla.setBounds((sirinaEkrana-600)/2, 0, 600, 703);
 		tabla.setResizable(false);
 		tabla.setVisible(true);
 		setVisible(true);

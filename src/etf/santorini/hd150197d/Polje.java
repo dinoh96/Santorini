@@ -3,6 +3,7 @@ package etf.santorini.hd150197d;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Canvas;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Graphics;
@@ -31,6 +32,7 @@ public class Polje {
 	private int col;
 	
 	private Platno platno;
+	private Label procena;
 	
 	private Panel glavni;
 	
@@ -50,8 +52,11 @@ public class Polje {
 		
 		glavni = new Panel();
 		
+		procena = new Label("");
+		procena.setBackground(null);
+		
 		obod = new ArrayList<Panel>();
-		Panel tmp = new Panel(); pnl.add(tmp, BorderLayout.NORTH); obod.add(tmp); tmp.setBackground(null);
+		Panel tmp = new Panel(new CardLayout()); pnl.add(tmp, BorderLayout.NORTH); obod.add(tmp); tmp.setBackground(null);
 		tmp = new Panel(); pnl.add(tmp, BorderLayout.SOUTH); obod.add(tmp); tmp.setBackground(null);
 		tmp = new Panel(); pnl.add(tmp, BorderLayout.EAST); obod.add(tmp); tmp.setBackground(null);
 		tmp = new Panel(); pnl.add(tmp, BorderLayout.WEST); obod.add(tmp); tmp.setBackground(null);
@@ -61,7 +66,9 @@ public class Polje {
 		platno = new Platno();
 		platno.setBounds(0, 0, platnoWidth, platnoHeight);
 		platno.setZ(z);
+		
 		glavni.add(platno);
+		
 	}
 
 	public Zgrada getZ() {
@@ -120,6 +127,28 @@ public class Polje {
 		glavni.addMouseListener(ml);
 		pnl.addMouseListener(ml);
 		obod.forEach(t -> t.addMouseListener(ml));
+	}
+
+	public void setProcena(int procena) {
+		this.procena.setText(Integer.toString(procena));
+	}
+	
+	public int getProcena() {
+		int ret;
+		try {
+			ret = Integer.parseInt(this.procena.getText());
+		} catch (Exception e) {
+			ret = Integer.MIN_VALUE;
+		}
+		return ret;
+	}
+	
+	public void enableProcena() {
+		procena.setVisible(true);
+	}
+	
+	public void disableProcena() {
+		procena.setVisible(false);
 	}
 	
 }

@@ -3,6 +3,7 @@ package etf.santorini.hd150197d;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Igrac {
@@ -49,6 +50,13 @@ public class Igrac {
 		while (it.hasNext())
 			if (it.next() == f) return true;
 		return false;
+	}
+	
+	public Potez napraviStablo() {
+		return null;
+	}
+	
+	public void izracunajProcene(LinkedList<Potez> potezi) {
 	}
 
 	public String getIme() {

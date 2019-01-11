@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
 import java.awt.Dialog;
 
 public class Tabla extends Frame{
@@ -49,6 +50,9 @@ public class Tabla extends Frame{
 	private int brojPoteza = 0;
 	
 	private Log log;
+	private String mod;
+	
+	public Panel CvC;
 	
 	private void init() {
 		setLayout(new BorderLayout(0, 20));
@@ -59,14 +63,44 @@ public class Tabla extends Frame{
 		Panel p2 = new Panel();
 		add(p2, BorderLayout.CENTER);
 		
-		p1.setLayout(new GridLayout(1, 3));
+		p1.setLayout(new GridLayout(2, 1));
 		p2.setLayout(new BorderLayout());
 		
-		p1.add(new Label(P1.getIme(), Label.RIGHT));
-		p1.add(naPotezu);
-		p1.add(new Label(P2.getIme(), Label.LEFT));
+		Panel tmp = new Panel();
+		tmp.setLayout(new GridLayout(1, 3));
 		
-		Panel tmp = new Panel(new GridLayout(5, 5, 1, 1));
+		tmp.add(new Label(P1.getIme(), Label.RIGHT));
+		tmp.add(naPotezu);
+		tmp.add(new Label(P2.getIme(), Label.LEFT));
+		p1.add(tmp);
+		
+		tmp = new Panel();
+		Button procena = new Button("Prikazi procene");
+		procena.addActionListener(t -> izracunajRacunar());
+		Button korak = new Button("Sledeci potez");
+		korak.addActionListener(t -> {
+			ocistiProcene();
+			odigrajRacunar();
+			});
+		Button doKraja = new Button("Zavrsi igru");
+		doKraja.addActionListener(t -> {
+			CvC.setEnabled(false);
+			while (!gameOver) {
+				odigrajRacunar();
+			}
+		});
+		tmp.add(procena);
+		tmp.add(korak);
+		tmp.add(doKraja);
+		p1.add(tmp);
+		tmp.setVisible(mod.equals("CvC"));
+		CvC = tmp;
+		CvC.setEnabled(true);
+		
+		korak.setSize(50, 20);
+		doKraja.setSize(50, 20);
+		
+		tmp = new Panel(new GridLayout(5, 5, 1, 1));
 		tmp.setBackground(Color.BLACK);
 		for(int i = 0; i < HEIGHT; i++)
 			for(int j = 0; j < WIDTH; j++) {
@@ -132,6 +166,7 @@ public class Tabla extends Frame{
 						}else 
 							return;
 						pripremiPotez();
+						if (isRacunar(currentPlayer)) odigrajRacunar();
 					}
 
 					@Override
@@ -142,6 +177,7 @@ public class Tabla extends Frame{
 				polje.addMouseListener(mListener);
 				polje.repaint();
 			}
+		
 		p2.add(tmp, BorderLayout.CENTER);
 		
 		tmp = new Panel(new GridLayout(1, 5));
@@ -174,30 +210,24 @@ public class Tabla extends Frame{
 			 }});
 	}
 	
-	public Tabla(Igrac P1, Igrac P2, File pocetnoStanje, boolean gameOver, int errorCode, String poruka, Polje[][] tabla, Log log, Igrac currentPlayer) {
+	public Tabla(Igrac P1, Igrac P2, File pocetnoStanje, boolean gameOver, int errorCode, String poruka, Polje[][] tabla, Log log, Igrac currentPlayer, String mod) {
 		this.P1 = P1;
 		this.P2 = P2;
 		this.tabla = tabla;
 		this.log = log;
+		this.mod = mod;
 		
 		this.currentPlayer = (currentPlayer == P2) ? P1 : P2;
 		naPotezu = new Label("==>", Label.CENTER);
 		potez = new Polje[3];
 		init();
-		/*
-		P1.getFigure().forEach((f) -> {
-			int i = f.getRow()-'A', j = f.getCol();
-			tabla[i][j].setF(f);
-			});
-		P2.getFigure().forEach((f) -> {
-			int i = f.getRow()-'A', j = f.getCol()
-					;
-			tabla[i][j].setF(f);
-			});
-		*/
-		pripremiPotez(); 
+		
+		if (isRacunar(P1)) ((RacunarEasy)P1).setTabla(tabla);
+		if (isRacunar(P2)) ((RacunarEasy)P2).setTabla(tabla);
+		
+		pripremiPotez();
 	}
-	
+	/*
 	public Tabla(Igrac P1, Igrac P2, File pocetnoStanje, boolean gameOver, int errorCode, String poruka) {
 		for(int i = 0; i < HEIGHT; i++)
 			for(int j = 0; j < WIDTH; j++)
@@ -221,46 +251,13 @@ public class Tabla extends Frame{
 			tabla[i][j].setF(f);
 			});
 		
+		if (isRacunar(P1)) ((Racunar)P1).setTabla(tabla);
+		if (isRacunar(P2)) ((Racunar)P2).setTabla(tabla);
+		
 		pripremiPotez();
 		
-	}
+	}*/
 	
-	public int getID() {
-		return ID;
-	}
-
-	public Polje[][] getTabla() {
-		return tabla;
-	}
-
-	public void setTabla(Polje[][] tabla) {
-		this.tabla = tabla;
-	}
-
-	public Igrac getP1() {
-		return P1;
-	}
-
-	public void setP1(Igrac p1) {
-		P1 = p1;
-	}
-
-	public Igrac getP2() {
-		return P2;
-	}
-
-	public void setP2(Igrac p2) {
-		P2 = p2;
-	}
-	
-	public Igrac getPobednik() {
-		return pobednik;
-	}
-
-	public void setPobednik(Igrac pobednik) {
-		this.pobednik = pobednik;
-	}
-
 	public boolean isValidMove(Igrac p, Figura f, int y1, int x1, int y2, int x2) {
 		if (tabla[y2][x2].getZ().getNivo() - tabla[y1][x1].getZ().getNivo() > 1) return false;
 		
@@ -385,12 +382,70 @@ public class Tabla extends Frame{
 			}
 		}
 		
+		for(int i = 0; i < HEIGHT; i++)
+			for(int j = 0; j < WIDTH; j++) 
+				tabla[i][j].repaint();
+		
 		if (brojPoteza == 0) {
 			gameOver = true;
 			pobednik = (currentPlayer == P1) ? P2 : P1;
 			gameOver();
+			return;
 		}
-		
+	}
+	
+	private void odigrajRacunar() {
+		if (izbor && isRacunar(currentPlayer)) {
+			Potez next = currentPlayer.napraviStablo();
+			if (next == null) {
+				gameOver = true;
+				pobednik = (currentPlayer == P1) ? P2 : P1;
+				gameOver();
+				return;				
+			}
+			move(currentPlayer, next.getFigura(), next.getStart().getY(), next.getStart().getX(), next.getMove().getY(), next.getMove().getX());
+			if (gameOver) {
+				gameOver();
+				return;
+			}
+			build(currentPlayer, next.getFigura(), next.getMove().getY(), next.getMove().getX(), next.getBuild().getY(), next.getBuild().getX());
+			gradnja = true;
+			izbor = false;
+			//tabla[next.getMove().getY()][next.getMove().getX()].repaint();
+			//tabla[next.getBuild().getY()][next.getBuild().getX()].repaint();
+			pripremiPotez();
+			if (gameOver) return;
+			log.append(Log.parseRow(next.getStart().getY())).append(Log.parseCol(next.getStart().getX())).append(' ');
+			log.append(Log.parseRow(next.getMove().getY())).append(Log.parseCol(next.getMove().getX())).append(' ');
+			log.append(Log.parseRow(next.getBuild().getY())).append(Log.parseCol(next.getBuild().getX()));
+			log.append('\n');
+		}
+	}
+	
+	private void izracunajRacunar() {
+		LinkedList<Potez> potezi = new LinkedList<>();
+		currentPlayer.izracunajProcene(potezi);
+		potezi.forEach(t -> {
+			int row = t.getMove().getY();
+			int col = t.getMove().getX();
+			int procena = t.getProcena();
+			Polje polje = tabla[row][col];
+			polje.enableProcena();
+			if (procena > polje.getProcena()) polje.setProcena(procena);
+			polje.repaint();
+		});
+	}
+	
+	private void ocistiProcene() {
+		for(Figura f : currentPlayer.getFigure()) {
+			int x = f.getCol();
+			int y = f.getRow();
+			for (int j = ((y-1 < 0) ? 0 : (y-1)); j <= ((y+1 > 4) ? 4 : (y+1)); j++)
+				for(int i = ((x-1 < 0) ? 0 : (x-1)); i <= ((x+1 > 4) ? 4 : (x+1)); i++)	{
+					tabla[j][i].disableProcena();
+					tabla[j][i].setProcena(Integer.MIN_VALUE);
+				}
+		}
 	}
 	
 	public void gameOver() {
@@ -447,7 +502,7 @@ public class Tabla extends Frame{
 		}
 		
 		Dialog dialog = new Dialog(this);
-		dialog.setAlwaysOnTop(true);
+		dialog.setAlwaysOnTop(false);
 		int dHeight = 200, dWidth = 400;
 		dialog.setBounds(this.getX() + (this.getWidth()-dWidth)/2, this.getY() + (this.getHeight()-dHeight)/2-50, dWidth, dHeight);
 		dialog.setLayout(new GridLayout(2, 1));
@@ -493,5 +548,47 @@ public class Tabla extends Frame{
 		if (greskaLog) greska.setVisible(true);
 	}
 	
+	public static boolean isRacunar(Igrac P) {
+		return 	P.getClass().getName().equals("etf.santorini.hd150197d.RacunarEasy") ||
+				P.getClass().getName().equals("etf.santorini.hd150197d.RacunarMedium") ||
+				P.getClass().getName().equals("etf.santorini.hd150197d.RacunarHard");
+	}
+	
+
+	public int getID() {
+		return ID;
+	}
+
+	public Polje[][] getTabla() {
+		return tabla;
+	}
+
+	public void setTabla(Polje[][] tabla) {
+		this.tabla = tabla;
+	}
+
+	public Igrac getP1() {
+		return P1;
+	}
+
+	public void setP1(Igrac p1) {
+		P1 = p1;
+	}
+
+	public Igrac getP2() {
+		return P2;
+	}
+
+	public void setP2(Igrac p2) {
+		P2 = p2;
+	}
+	
+	public Igrac getPobednik() {
+		return pobednik;
+	}
+
+	public void setPobednik(Igrac pobednik) {
+		this.pobednik = pobednik;
+	}
 	
 }
