@@ -93,6 +93,13 @@ public class Igrac {
 		this.boja = boja;
 	}
 	
+	public void setOtherPlayer(Igrac otherPlayer) {
+		
+	}
+	
+	public void setDubina(int dubina) {
+		
+	}
 	
 	
 }

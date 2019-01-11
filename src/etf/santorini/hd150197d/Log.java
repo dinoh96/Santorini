@@ -262,14 +262,6 @@ public class Log extends Frame{
 		int buildX = line.charAt(7) - '1';
 		
 		if (!checkCoord(buildX) || !checkCoord(buildY)) return -5;
-	
-		// **************************************************************
-
-		int i = 0;
-		if (line.equals("A4 A3 B3"))
-			i = 2;
-		
-		// ************************************************************** 
 
 		
 		Figura f = tabla[startY][startX].getF();

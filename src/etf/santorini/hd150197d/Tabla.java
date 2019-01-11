@@ -85,6 +85,7 @@ public class Tabla extends Frame{
 		Button doKraja = new Button("Zavrsi igru");
 		doKraja.addActionListener(t -> {
 			CvC.setEnabled(false);
+			ocistiProcene();
 			while (!gameOver) {
 				odigrajRacunar();
 			}
@@ -227,37 +228,6 @@ public class Tabla extends Frame{
 		
 		pripremiPotez();
 	}
-	/*
-	public Tabla(Igrac P1, Igrac P2, File pocetnoStanje, boolean gameOver, int errorCode, String poruka) {
-		for(int i = 0; i < HEIGHT; i++)
-			for(int j = 0; j < WIDTH; j++)
-				tabla[i][j] = new Polje(i, j);
-	
-		this.P1 = P1;
-		this.P2 = P2;
-		
-		this.currentPlayer = P2;
-		naPotezu = new Label("==>", Label.CENTER);
-		potez = new Polje[3];
-		init();
-		
-		P1.getFigure().forEach((f) -> {
-			int i = f.getRow(), j = f.getCol();
-			tabla[i][j].setF(f);
-			});
-		P2.getFigure().forEach((f) -> {
-			int i = f.getRow(), j = f.getCol()
-					;
-			tabla[i][j].setF(f);
-			});
-		
-		if (isRacunar(P1)) ((Racunar)P1).setTabla(tabla);
-		if (isRacunar(P2)) ((Racunar)P2).setTabla(tabla);
-		
-		pripremiPotez();
-		
-	}*/
-	
 	public boolean isValidMove(Igrac p, Figura f, int y1, int x1, int y2, int x2) {
 		if (tabla[y2][x2].getZ().getNivo() - tabla[y1][x1].getZ().getNivo() > 1) return false;
 		
@@ -265,7 +235,6 @@ public class Tabla extends Frame{
 	}
 	
 	public boolean move(Igrac p, Figura f, int y1, int x1, int y2, int x2) {
-//		if (!isValidMove(p, f, S1, S2, D1, D2)) return false;
 		
 		tabla[y1][x1].setF(null);
 		tabla[y2][x2].setF(f);
@@ -303,7 +272,6 @@ public class Tabla extends Frame{
 	}
 	
 	public boolean build(Igrac p, Figura f, int y1, int x1, int y2, int x2) {
-//		if (!isValidBuild(p, f, S1, S2, D1, D2)) return false;
 		
 		Polje D = tabla[y2][x2];
 		D.getZ().incNivo();
@@ -362,9 +330,6 @@ public class Tabla extends Frame{
 						if (!isValid(currentPlayer, t, y, x, i ,j)) continue;
 						if ((izbor || pomeraj) && !isValidMove(currentPlayer, t, y, x, i, j)) continue;
 						if (gradnja && !isValidBuild(currentPlayer, t, y, x, i, j)) continue;		
-										
-						//if (p.getF() != null || (p.getZ() != null && p.getZ().isKupola())) continue;
-						//if ((pomeraj || izbor) && Math.abs(p.getZ().getNivo()-tabla[t.getRow()-'A'][t.getCol()].getZ().getNivo()) > 1) continue;
 						
 						p.changeColor(boja);
 						brojPotezaF[trenutnaFigura]++;
@@ -405,21 +370,35 @@ public class Tabla extends Frame{
 			}
 			move(currentPlayer, next.getFigura(), next.getStart().getY(), next.getStart().getX(), next.getMove().getY(), next.getMove().getX());
 			if (gameOver) {
+
+				log.append(Log.parseRow(next.getStart().getY())).append(Log.parseCol(next.getStart().getX())).append(' ');
+				log.append(Log.parseRow(next.getMove().getY())).append(Log.parseCol(next.getMove().getX())).append(' ');
+				log.append('\n');
+				
+				//pripremiPotez();
+				
 				gameOver();
 				return;
 			}
 			build(currentPlayer, next.getFigura(), next.getMove().getY(), next.getMove().getX(), next.getBuild().getY(), next.getBuild().getX());
 			gradnja = true;
 			izbor = false;
-			//tabla[next.getMove().getY()][next.getMove().getX()].repaint();
-			//tabla[next.getBuild().getY()][next.getBuild().getX()].repaint();
-			pripremiPotez();
-			if (gameOver) return;
+			
 			log.append(Log.parseRow(next.getStart().getY())).append(Log.parseCol(next.getStart().getX())).append(' ');
 			log.append(Log.parseRow(next.getMove().getY())).append(Log.parseCol(next.getMove().getX())).append(' ');
+			if (gameOver) {
+				log.append('\n');
+				//pripremiPotez();
+				return;
+			}
 			log.append(Log.parseRow(next.getBuild().getY())).append(Log.parseCol(next.getBuild().getX()));
 			log.append('\n');
+			pripremiPotez();
 		}
+			
+			
+			
+			
 	}
 	
 	private void izracunajRacunar() {

@@ -7,37 +7,99 @@ import java.util.List;
 import etf.santorini.hd150197d.RacunarEasy.Node;
 import etf.santorini.hd150197d.RacunarEasy.Polje;
 
-public class RacunarMedium extends RacunarEasy {
-	public RacunarMedium() {
+public class RacunarHard extends RacunarEasy {
+	
+	public RacunarHard() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public RacunarMedium(Color boja) {
+	public RacunarHard(Color boja) {
 		super(boja);
 		// TODO Auto-generated constructor stub
 	}
 
-	public RacunarMedium(Figura f1, Figura f2, Color boja) {
+	public RacunarHard(Figura f1, Figura f2, Color boja) {
 		super(f1, f2, boja);
 		// TODO Auto-generated constructor stub
 	}
 
-	public RacunarMedium(List<Figura> figure, Color boja) {
+	public RacunarHard(List<Figura> figure, Color boja) {
 		super(figure, boja);
 		// TODO Auto-generated constructor stub
 	}
 
-	public RacunarMedium(String ime) {
+	public RacunarHard(String ime) {
 		super(ime);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public Potez napraviStablo() {
+		 if (!preparedPotez) minimax = 0;
 		alpha = Integer.MIN_VALUE;
 		beta = Integer.MAX_VALUE;
-		return super.napraviStablo();
+		Node root = new Node();
+		int dubina = this.dubina;
+		
+		int max = Integer.MIN_VALUE;
+		Potez next = null;
+		
+		if (!preparedPotez){
+			long start = System.currentTimeMillis();
+			
+			Polje[][] tabla = cloneTabla();
+			root.children = napraviListuPoteza(tabla, this, 0);	
+			
+			
+			for(Node t : root.children) {
+
+				t.info.setProcena(minimax(t, tabla, 1));
+
+				if (max < t.info.getProcena()) {
+					max = t.info.getProcena();
+					next = t.info;
+				}
+				
+				if (t.gameOver) {
+					System.out.println(minimax + " : " + (System.currentTimeMillis()-start));
+					gameOver = false;
+					
+					vreme = System.currentTimeMillis()-start;
+					System.out.println(minimax + " : " + vreme);
+					
+					return next;				
+				}
+				
+				vreme = System.currentTimeMillis()-start;
+				
+			}
+		}else{
+			for(Node t : this.potezi) {
+
+				if (max < t.info.getProcena()) {
+					max = t.info.getProcena();
+					next = t.info;
+				}
+				
+				if (t.gameOver) {
+					System.out.println(minimax + " : " + vreme);
+					gameOver = false;
+
+					return next;				
+				}
+				
+			}
+
+		}
+		System.out.println(minimax + " : " + vreme);
+		gameOver = false;
+
+		this.potezi = null;
+		preparedPotez = false;
+
+		return next;
+		
 	}
 
 	@Override
@@ -50,8 +112,8 @@ public class RacunarMedium extends RacunarEasy {
 		
 		Igrac ig = ((dubina & 2) == 0) ? otherPlayer : this;
 		boolean thisPlayer = ig == this;
-		
-		if (child.gameOver || dubina == this.dubina) 
+		boolean gameOver = tabla[child.info.getMove().getY()][child.info.getMove().getX()].nivo == 3;
+		if (gameOver || dubina == this.dubina) 
 			return izracunajFunkciju(child.info, tabla);
 
 		setPos(tabla, child.info.getFigura(), child.info.getMove().getY(), child.info.getMove().getX());
@@ -67,11 +129,12 @@ public class RacunarMedium extends RacunarEasy {
 			if (tmp.info.getStart().getX() == child.info.getStart().getX() && tmp.info.getStart().getY() == child.info.getStart().getY() && 
 				tmp.info.getMove().getX() == child.info.getMove().getX() && tmp.info.getMove().getY() == child.info.getMove().getY() && 
 				tmp.info.getBuild().getX() == child.info.getBuild().getX() && tmp.info.getBuild().getY() == child.info.getBuild().getY()) continue;
+			
 			if (tabla[tmp.info.getMove().getY()][tmp.info.getMove().getX()].nivo == 3) tmp.gameOver = true;
 			int val = minimaxAlphaBeta(tmp, tabla, tmp.dubina);
 			
 			if (thisPlayer && tmp.gameOver) {
-				gameOver = true;
+				this.gameOver = true;
 				ret = val;
 				break;
 			}
@@ -91,10 +154,17 @@ public class RacunarMedium extends RacunarEasy {
 				}
 			}
 		}
+		
 
 		setPos(tabla, child.info.getFigura(), child.info.getStart().getY(), child.info.getStart().getX());
 
 		return ret;
+	}
+	
+	@Override
+	protected int izracunajM(Potez potez, Polje[][] tabla) {
+		int m = super.izracunajM(potez, tabla);
+		return 2*m;
 	}
 	
 	@Override
@@ -114,8 +184,19 @@ public class RacunarMedium extends RacunarEasy {
 		
 		this.potezi = cvorovi;
 		preparedPotez = true;
-
+		
 		if (potezi != null) cvorovi.forEach(t -> potezi.add(t.info));
+	}
+	
+	@Override
+	protected int izracunajFunkciju(Potez potez, Polje[][] tabla) {
+		int f = super.izracunajFunkciju(potez, tabla);
+		if (tabla[potez.getMove().getY()][potez.getMove().getX()].nivo == 3) 
+			if (this.has(potez.getFigura()))
+				f = Math.abs(f)*2;
+			else f = -Math.abs(f)*2;
+		
+		return f;
 	}
 	
 }

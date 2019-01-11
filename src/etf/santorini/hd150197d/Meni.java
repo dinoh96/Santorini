@@ -31,7 +31,8 @@ public class Meni extends Frame{
 	
 	private Color colorP1 = Color.RED, colorP2 = Color.BLUE;
 	
-	private Checkbox prviIgra[] = new Checkbox[2];
+	private Choice dubina[] = new Choice[2];
+	private Choice tezina[] = new Choice[2];
 	
 	private Checkbox modIgre[] = new Checkbox[3];
 	
@@ -65,24 +66,25 @@ public class Meni extends Frame{
 		int x = 0;
 		int y = 26;
 		
-		//pnl1.setBackground(Color.red); pnl2.setBackground(Color.YELLOW); pnl3.setBackground(Color.BLUE); pnl4.setBackground(Color.MAGENTA);
 		add(pnl4); add(pnl2); add(pnl3); add(pnl1); add(pnl5);
 		
 		int pnl1Height = height/10;
 		pnl1.setBounds(x, y, width, pnl1Height);
 		y += pnl1Height;
 		
-		//pnl1.setLayout(new BorderLayout(hgap, vgap));
 		Panel tmp = new Panel();
 		
 		tmp.add(new Label("Izaberite igrace:", Label.LEFT));
 		
 		CheckboxGroup mod = new CheckboxGroup();
-		modIgre[0] = new Checkbox("Igrac - Igrac", false, mod);
+		modIgre[0] = new Checkbox("Igrac - Igrac", true, mod);
 		modIgre[1] = new Checkbox("Igrac - Racunar", false, mod);
-		modIgre[2] = new Checkbox("Racunar - Racunar", true, mod);
+		modIgre[2] = new Checkbox("Racunar - Racunar", false, mod);
 		
-		for(Checkbox t: modIgre) tmp.add(t);
+		for(Checkbox t: modIgre) {
+			tmp.add(t);
+			t.addItemListener(k -> enabling());
+		}
 		pnl1.add(tmp);
 		
 		int pnl2Height = height/6;
@@ -91,12 +93,24 @@ public class Meni extends Frame{
 		
 		tmp = new Panel(new GridLayout(3,1, hgap, vgap));
 		tmp.add(new Label("Naziv igraca", Label.LEFT));
-		imeP1 = new TextField("Igrac 1", 50); tmp.add(imeP1);
-		imeP2 = new TextField("Igrac 2", 50); tmp.add(imeP2);
+		imeP1 = new TextField("Igrac 1", 40); tmp.add(imeP1);
+		imeP2 = new TextField("Igrac 2", 40); tmp.add(imeP2);
 		imeP1.addTextListener(t -> {
 			if (!imeP1.getText().equals("") && (!imeP2.getText().equals("")) && pocetnoStanje != null) 
 				play.setEnabled(true);
 		});
+		pnl2.add(tmp);
+		
+		tmp = new Panel(new GridLayout(3, 1, hgap, vgap));
+		tmp.add(new Label("Tezina", Label.LEFT));
+		for(int i = 0; i < 2; i++) {
+			tezina[i] = new Choice();
+			tezina[i].add("Easy");
+			tezina[i].add("Medium");
+			tezina[i].add("Hard");
+			tezina[i].setEnabled(false);
+			tmp.add(tezina[i]);
+		}
 		pnl2.add(tmp);
 		
 		tmp = new Panel(new GridLayout(3,1, hgap, vgap));
@@ -138,13 +152,15 @@ public class Meni extends Frame{
 		pnl2.add(tmp);
 		
 		tmp = new Panel(new GridLayout(3,1, hgap, vgap));
-		tmp.add(new Label("Prvi igra", Label.LEFT));
-		CheckboxGroup grupa = new CheckboxGroup();
-		prviIgra[0] = new Checkbox("", true, grupa);
-		prviIgra[1] = new Checkbox("", false, grupa);
+		tmp.add(new Label("Dubina", Label.LEFT));
 		
-		tmp.add(prviIgra[0]);
-		tmp.add(prviIgra[1]);
+		for(int i = 0; i < 2; i++) {
+			dubina[i] = new Choice();
+			dubina[i].setEnabled(false);
+			for(int j = 2; j <= 10; j++) 
+				dubina[i].add(Integer.toString(j));
+			tmp.add(dubina[i]);
+		}
 		pnl2.add(tmp);
 
 		int pnl3Height = height/10;
@@ -202,14 +218,29 @@ public class Meni extends Frame{
 			P2 = new Igrac();
 		}else if(modIgre[1].getState()) {
 			P1 = new Igrac();
-			P2 = new RacunarEasy();
+			switch (tezina[1].getSelectedIndex()){
+			case 1: P2 = new RacunarMedium(); break;
+			case 2: P2 = new RacunarHard(); break;
+			default: P2 = new RacunarEasy(); break;
+			}
 			mod = "PvC";
-			((RacunarEasy)P2).setOtherPlayer(P1);
+			P2.setOtherPlayer(P1);
+			P2.setDubina(dubina[1].getSelectedIndex() + 2);
 		}else if(modIgre[2].getState()) {
-			P1 = new RacunarEasy();
-			P2 = new RacunarEasy();
-			((RacunarEasy)P1).setOtherPlayer(P2);
-			((RacunarEasy)P2).setOtherPlayer(P1);
+			switch (tezina[0].getSelectedIndex()){
+			case 1: P1 = new RacunarMedium(); break;
+			case 2: P1 = new RacunarHard(); break;
+			default: P1 = new RacunarEasy(); break;
+			}
+			switch (tezina[1].getSelectedIndex()){
+			case 1: P2 = new RacunarMedium(); break;
+			case 2: P2 = new RacunarHard(); break;
+			default: P2 = new RacunarEasy(); break;
+			}
+			P1.setOtherPlayer(P2);
+			P1.setDubina(dubina[0].getSelectedIndex() + 2);
+			P2.setOtherPlayer(P1);
+			P2.setDubina(dubina[1].getSelectedIndex() + 2);
 			mod = "CvC";
 		}else {
 			dispose();
@@ -223,6 +254,25 @@ public class Meni extends Frame{
 		new Log(pocetnoStanje, P1, P2, sirinaEkrana, mod);
 				
 		dispose();
+	}
+	
+	private void enabling() {
+		if (modIgre[0].getState()) {
+			dubina[0].setEnabled(false);
+			dubina[1].setEnabled(false);
+			tezina[0].setEnabled(false);
+			tezina[1].setEnabled(false);
+		}else if (modIgre[1].getState()) {
+			dubina[0].setEnabled(false);
+			dubina[1].setEnabled(true);
+			tezina[0].setEnabled(false);
+			tezina[1].setEnabled(true);
+		}else if (modIgre[2].getState()) {
+			dubina[0].setEnabled(true);
+			dubina[1].setEnabled(true);
+			tezina[0].setEnabled(true);
+			tezina[1].setEnabled(true);
+		}
 	}
 	
 

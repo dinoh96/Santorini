@@ -67,11 +67,16 @@ public class RacunarEasy extends Igrac {
 	
 	protected etf.santorini.hd150197d.Polje[][] tabla;	
 	protected Igrac otherPlayer;
-	protected int dubina = 4;
+	protected int dubina = 5;
 	protected Node koren;
 	
-	private boolean gameOver = false;
-
+	protected boolean gameOver = false;
+	protected Integer alpha, beta;
+	
+	protected boolean preparedPotez;
+	protected LinkedList<Node> potezi;
+	
+	protected long vreme;
 	
 	public RacunarEasy() {
 		super();
@@ -110,6 +115,7 @@ public class RacunarEasy extends Igrac {
 		return otherPlayer;
 	}
 
+	@Override
 	public void setOtherPlayer(Igrac otherPlayer) {
 		this.otherPlayer = otherPlayer;
 	}
@@ -134,37 +140,36 @@ public class RacunarEasy extends Igrac {
 		//manhattan
 		
 		return Math.abs(p.getX()-q.getX()) + Math.abs(p.getY()-q.getY());
+		//return (int)Math.sqrt(Math.pow(p.getX()-q.getX(), 2) + Math.pow(p.getY()-q.getY(), 2));
 	}
 	
-	private int izracunajM(Potez potez) {
+	protected int izracunajM(Potez potez, Polje[][] tabla) {
 		int m = 0;
 		
-		m = tabla[potez.getMove().getY()][potez.getMove().getX()].getZ().getNivo();
+		m = tabla[potez.getMove().getY()][potez.getMove().getX()].nivo;
 		
 		return m;
 	}
 	
-	private int izracunajL(Potez potez) {
+	private int izracunajL(Potez potez, Polje[][] tabla) {
 		int protivnikoveFigure = 0;
 		int mojeFigure = 0;
 		for(Figura f: figure) protivnikoveFigure += rastojanje(potez.getBuild(), new Koordinata(f.getCol(), f.getRow()));
 		for(Figura f: otherPlayer.getFigure()) {
 			mojeFigure += rastojanje(potez.getBuild(), new Koordinata(f.getCol(), f.getRow()));
 		}
-		return (mojeFigure - protivnikoveFigure)*tabla[potez.getBuild().getY()][potez.getBuild().getX()].getZ().getNivo();
+		return (mojeFigure - protivnikoveFigure)*tabla[potez.getBuild().getY()][potez.getBuild().getX()].nivo;
 	}
 
-	protected int izracunajFunkciju(Potez potez) {
+	protected int izracunajFunkciju(Potez potez, Polje[][] tabla) {
 		//f = m + l
-		int m = izracunajM(potez);
-		int l = izracunajL(potez);
+		int m = izracunajM(potez, tabla);
+		int l = izracunajL(potez, tabla);
 		
 		return m + l;
 	}
 	
-	//private PriorityQueue<Potez> napraviListuPoteza() {
 	protected LinkedList<Node> napraviListuPoteza(Polje[][] tabla, Igrac ig, int dubina) {
-		//PriorityQueue<Potez> potezi = new PriorityQueue<>((a, b) ->  {return Integer.compare(a.procena, b.procena);});
 		LinkedList<Node> potezi = new LinkedList<>();
 		
 		for(Figura f: ig.getFigure()) {
@@ -199,7 +204,7 @@ public class RacunarEasy extends Igrac {
 		}
 		return potezi;
 	}	
-	private Polje[][] cloneTabla() {
+	protected Polje[][] cloneTabla() {
 		Polje[][] cloneTabla = new Polje[HEIGHT][WIDTH];
 		
 		for(int j = 0; j < HEIGHT; j++)
@@ -208,14 +213,7 @@ public class RacunarEasy extends Igrac {
 		return cloneTabla;
 	}	
 	
-	public boolean isValid(Igrac p, Polje[][] tabla, Figura f, int y1, int x1, int y2, int x2){
-		//if (!p.has(f)) return false;
-		
-		//Polje S = tabla[y1][x1];
-		
-		//if (S.f) return false;
-		//if (S.getF().getP() != p) return false;
-		
+	public boolean isValid(Igrac p, Polje[][] tabla, Figura f, int y1, int x1, int y2, int x2){		
 		Polje D = tabla[y2][x2];
 		
 		if (D.f) return false;
@@ -236,40 +234,63 @@ public class RacunarEasy extends Igrac {
 	
 	@Override
 	public Potez napraviStablo() {
-		minimax = 0;
+		if (!preparedPotez) minimax = 0;
 		Node root = new Node();
 		int dubina = this.dubina;
 		
-		Polje[][] tabla = cloneTabla();
-		root.children = napraviListuPoteza(tabla, this, 0);	
 		
-		int max = Integer.MIN_VALUE;
 		Potez next = null;
-		for(Node t : root.children) {
+		int max = Integer.MIN_VALUE;
+		if (!preparedPotez) {
+			long start = System.currentTimeMillis();
+			
+			Polje[][] tabla = cloneTabla();
+			root.children = napraviListuPoteza(tabla, this, 0);	
 
-			t.info.setProcena(minimax(t, tabla, 1));
-
-			if (max < t.info.getProcena()) {
-				max = t.info.getProcena();
-				next = t.info;
+			for(Node t : root.children) {
+	
+				t.info.setProcena(minimax(t, tabla, 1));
+	
+				if (max < t.info.getProcena()) {
+					max = t.info.getProcena();
+					next = t.info;
+				}
+				
 			}
 			
+			vreme = System.currentTimeMillis()-start;
+		}else {
+			for(Node t: this.potezi)
+				if (max < t.info.getProcena()) {
+					max = t.info.getProcena();
+					next = t.info;
+				}
 		}
-		System.out.println(minimax);
+		System.out.println(minimax + " : " + vreme);
 		gameOver = false;
-
+		
+		this.potezi = null;
+		preparedPotez = false;
+		
 		return next;
 		
 	}
 	
 	@Override
 	public void izracunajProcene(LinkedList<Potez> potezi) {
+		long start = System.currentTimeMillis();
+		
 		Polje[][] tabla = cloneTabla();
 		LinkedList<Node> cvorovi = napraviListuPoteza(tabla, this, 0);	
 		
 		for(Node t : cvorovi)
 			t.info.setProcena(minimax(t, tabla, 1));
-
+		
+		vreme = System.currentTimeMillis() - start;
+		
+		this.potezi = cvorovi;
+		preparedPotez = true;
+		
 		if (potezi != null) cvorovi.forEach(t -> potezi.add(t.info));
 	}
 
@@ -279,17 +300,8 @@ public class RacunarEasy extends Igrac {
 		Igrac ig = ((dubina & 2) == 0) ? otherPlayer : this;
 		boolean thisPlayer = ig == this;
 		
-		if (child.gameOver || dubina == this.dubina) {
-			int f;
-			/* (!child.gameOver) */f = izracunajFunkciju(child.info);
-			/*else {
-				f = thisPlayer ? Integer.MAX_VALUE : Integer.MIN_VALUE;
-			}*/
-			return f;
-		}
-			
-		//tabla[child.info.start.y][child.info.start.x].f = false;
-		//tabla[child.info.move.y][child.info.move.x].f = true;
+		if (child.gameOver || dubina == this.dubina) 
+			return izracunajFunkciju(child.info, tabla);
 
 		setPos(tabla, child.info.getFigura(), child.info.getMove().getY(), child.info.getMove().getX());
 
@@ -316,10 +328,6 @@ public class RacunarEasy extends Igrac {
 			}
 			else ret = Integer.min(val, ret);
 		}
-		
-		//tabla[child.info.start.y][child.info.start.x].f = true;
-		//tabla[child.info.move.y][child.info.move.x].f = false;
-
 		setPos(tabla, child.info.getFigura(), child.info.getStart().getY(), child.info.getStart().getX());
 
 		return ret;
