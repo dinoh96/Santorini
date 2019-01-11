@@ -7,6 +7,8 @@ import java.awt.Graphics;
 public class Platno extends Canvas {
 	private Figura f;
 	private Zgrada z;
+	private boolean proceni;
+	private int procena;
 	
 	public static final int hSpace = 4;
 	public static final int vSpace = 1;
@@ -42,6 +44,22 @@ public class Platno extends Canvas {
 	}
 
 
+	public boolean isProceni() {
+		return proceni;
+	}
+
+	public void setProceni(boolean proceni) {
+		this.proceni = proceni;
+	}
+
+	public int getProcena() {
+		return procena;
+	}
+
+	public void setProcena(int procena) {
+		this.procena = procena;
+	}
+
 	public synchronized void paint(Graphics g) {
 		int w = getWidth(), h = getHeight();
 		g.translate(0, h-6);
@@ -60,6 +78,10 @@ public class Platno extends Canvas {
 		if (f != null) {
 			g.setColor(f.getP().getBoja());
 			g.fillOval(w/2 - (h/8-3) - 1, -(((brElem+1)*h/4-4)-1), h/4-6, h/4-6); // 3*h/4-1-vSpace
+		}
+		if (proceni) {
+			g.setColor(Color.BLACK);
+			g.drawString(Integer.toString(procena), w/2, -h/2);
 		}
 	}
 	

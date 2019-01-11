@@ -32,7 +32,6 @@ public class Polje {
 	private int col;
 	
 	private Platno platno;
-	private Label procena;
 	
 	private Panel glavni;
 	
@@ -52,11 +51,8 @@ public class Polje {
 		
 		glavni = new Panel();
 		
-		procena = new Label("");
-		procena.setBackground(null);
-		
 		obod = new ArrayList<Panel>();
-		Panel tmp = new Panel(new CardLayout()); pnl.add(tmp, BorderLayout.NORTH); obod.add(tmp); tmp.setBackground(null);
+		Panel tmp = new Panel(); pnl.add(tmp, BorderLayout.NORTH); obod.add(tmp); tmp.setBackground(null);
 		tmp = new Panel(); pnl.add(tmp, BorderLayout.SOUTH); obod.add(tmp); tmp.setBackground(null);
 		tmp = new Panel(); pnl.add(tmp, BorderLayout.EAST); obod.add(tmp); tmp.setBackground(null);
 		tmp = new Panel(); pnl.add(tmp, BorderLayout.WEST); obod.add(tmp); tmp.setBackground(null);
@@ -130,25 +126,19 @@ public class Polje {
 	}
 
 	public void setProcena(int procena) {
-		this.procena.setText(Integer.toString(procena));
+		platno.setProcena(procena);
 	}
 	
 	public int getProcena() {
-		int ret;
-		try {
-			ret = Integer.parseInt(this.procena.getText());
-		} catch (Exception e) {
-			ret = Integer.MIN_VALUE;
-		}
-		return ret;
+		return platno.getProcena();
 	}
 	
 	public void enableProcena() {
-		procena.setVisible(true);
+		platno.setProceni(true);
 	}
 	
 	public void disableProcena() {
-		procena.setVisible(false);
+		platno.setProceni(false);
 	}
 	
 }
